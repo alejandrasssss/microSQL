@@ -132,6 +132,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\EstructuraTabla.cs" />
+    <Compile Include="Models\FabricaFila.cs" />
     <Compile Include="Models\InstrucciónSQL.cs" />
     <Compile Include="Models\PalabraReservada.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
