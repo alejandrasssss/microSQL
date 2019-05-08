@@ -1,0 +1,32 @@
+﻿@{
+    ViewBag.Title = "Editor Texto";
+}
+
+<div style="width:1200px; height:470px; padding:3px; float:left" ;>
+
+    <div style="width:245px; overflow:scroll; height:447px; background:#000000; float:left;">
+        @Html.Partial("_Tablas", (List<Proyecto_microSQL.Models.EstructuraTabla>)ViewBag.tablas)
+    </div>
+
+    <div style="width:945px;  float:right;">
+        @using (Html.BeginForm())
+        {
+            <div class="col-lg-10">
+                <textarea class="form-control" name="textArea1" id="textArea" rows="20" cols="70" onkeyup=" var start = this.selectionStart;
+                                                                                                            var end = this.selectionEnd;
+                                                                                                            this.value = this.value.toUpperCase();
+                                                                                                            this.setSelectionRange(start, end);"></textarea>
+            </div>
+            <div class="col-xs-10 col-md-2">
+                <button class="btn btn-success" type="submit">Ejecutar</button>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="form-group" style="width:1026px; height:245px; overflow:scroll; background:#808080; float:left; padding:3px;">
+
+</div>
+
+
+

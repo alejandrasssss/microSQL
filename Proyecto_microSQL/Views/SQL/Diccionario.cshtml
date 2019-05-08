@@ -1,0 +1,32 @@
+﻿
+@{
+    ViewBag.Title = "Diccionario";
+}
+
+<h2>Diccionario</h2>
+<br />
+
+@{
+    switch (ViewBag.Mensaje)
+    {
+        case 1:
+            <h3>Diccionario de Palabras reservadas cargado correctamente</h3>
+            <br />
+            <br />
+            @Html.ActionLink("Continuar", "EditorTexto", null, new { @class = "btn btn-success" })
+            break;
+        case 2:
+            <h3>Formato de archivo no válido</h3>
+            <br />
+            <h1> por favor coloque un archivo válido o borre el archivo para que se cree uno por defecto</h1>
+            @Html.ActionLink("Reintentar", "Diccionario", null, new { @class = "btn btn-danger" })
+            break;
+        case 3:
+            <h3>No se encontró un archivo en el directorio, se creó uno por defecto</h3>
+            @Html.ActionLink("Continuar", "EditorTexto", null, new { @class = "btn btn-success" })
+            break;
+    }
+
+}
+
+

@@ -1,0 +1,466 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+
+namespace Proyecto_microSQL.Models
+{
+    public class InstrucciónSQL
+    {
+        public List<string> LeerInstrucciones(string TextoPlano, PalabraReservada diccionario)
+        {
+            List<string> listaErrores = new List<string>();
+
+            TextoPlano = TextoPlano.Replace("\r","");
+            TextoPlano = TextoPlano.Replace("\n"," ");
+
+            //Pueden venir en el texto escrito, varias instrucciones las cuales son separadas por GO
+            //GO no se debe colocar en la última instrucción o si viene sólo una
+            string[] instrucciones = TextoPlano.Split(new string[] { " " + diccionario.Go + " " }, StringSplitOptions.None);
+
+            //recorremos cada una de las instrucciones que separamos previamente.
+            foreach (var item in instrucciones)
+            {
+                //como no es necesario que "(" tenga espacios antes o después, se garantiza su separación
+                //mismo caso con las comas
+                string instruccion = item.Replace("(100)", "#");
+                instruccion = instruccion.Replace("(", " ( ");
+                instruccion = instruccion.Replace(")", " ) ");
+                instruccion = instruccion.Replace(","," , ");
+                instruccion = instruccion.Replace("\'"," \' ");
+                instruccion = instruccion.Replace("*", " * ");
+
+                //para facilitar, separamos cada una de las instrucciones por cada una de sus expresiones
+                string[] partesDeInstruccion = instruccion.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries);
+
+                //INSTRUCCIONES PRINCIPALES, DENTRO DE CADA IF SE VALIDAN SUS VARIANTES
+                #region instrucciones
+
+                #region CREATE
+                //CREATE TABLE
+                if (partesDeInstruccion[0] == diccionario.Create)
+                {
+                    //validación
+                    //después de create tiene que venir un table
+                    if (partesDeInstruccion[1] == diccionario.Table)
+                    {
+                        int contadorINT = 0;
+                        int contadorVARCHAR = 0;
+                        int contadorDATETIME = 0;
+                        string NombreTabla = partesDeInstruccion[2];
+                        Dictionary<string, string> columnas = new Dictionary<string, string>();
+
+                        //validación
+                        //si la tabla ya existe y se intenta volver a crear, devolverá un error
+                        if (!File.Exists("C://microSQL//tablas//"+NombreTabla+".tabla"))
+                        {
+                            if (NombreTabla != diccionario.Create && NombreTabla.Length > 1
+                                && NombreTabla != diccionario.Delete && NombreTabla != diccionario.Drop
+                                && NombreTabla != diccionario.From && NombreTabla != diccionario.Insert
+                                && NombreTabla != diccionario.Into && NombreTabla != diccionario.Select
+                                && NombreTabla != diccionario.Table && NombreTabla != diccionario.Values
+                                && NombreTabla != diccionario.Where && NombreTabla != "INT"
+                                && NombreTabla != "DATETIME" //varchar(100) no, porque se elimina con la condición de #
+                                && !NombreTabla.Contains(".") && !NombreTabla.Contains(";")
+                                && !NombreTabla.Contains("=") && !NombreTabla.Contains(":")
+                                && !NombreTabla.Contains("{") && !NombreTabla.Contains("}")
+                                && !NombreTabla.Contains("¿") && !NombreTabla.Contains("?")
+                                && !NombreTabla.Contains("¡") && !NombreTabla.Contains("!")
+                                && !NombreTabla.Contains("\\") && !NombreTabla.Contains("/")
+                                && !NombreTabla.Contains("&") && !NombreTabla.Contains("$")
+                                && !NombreTabla.Contains("\"") && !NombreTabla.Contains("#")
+                                && !NombreTabla.Contains("[") && !NombreTabla.Contains("]")
+                                && !NombreTabla.Contains("+") && !NombreTabla.Contains("*")
+                                )
+                            {
+                                //si no existe y es nombre válido continúa la validación de paréntesis
+                                //junto con la validación de ID INT PRIMARY KEY,
+                                try
+                                {
+                                    if (partesDeInstruccion[3] == "(" && partesDeInstruccion[4] == "ID" && partesDeInstruccion[5] == "INT"
+                                    && partesDeInstruccion[6] == "PRIMARY" && partesDeInstruccion[7] == "KEY")
+                                    {
+                                        if (partesDeInstruccion[8] == "," && partesDeInstruccion[9] != ")" && partesDeInstruccion[10] != ")")
+                                        {
+                                            int pos = 6;
+                                            bool Correcto = true;
+
+                                            //validación
+                                            //saber si se cerró el paréntesis (el cuál debería ser el último elemento de la instrucción)
+                                            if (partesDeInstruccion[partesDeInstruccion.Length - 1] == ")")
+                                            {
+                                                do
+                                                {
+                                                    pos = pos + 3;
+                                                    string nombCol = partesDeInstruccion[pos];
+                                                    if (partesDeInstruccion[pos + 2] == ")" || partesDeInstruccion[pos + 2] == ",")
+                                                    {
+                                                        //validación extrema de nombres de tabla
+                                                        //no pueden ser palabras reservadas como tal, ni una sola letra, ni contener caracteres especiales 
+                                                        if (partesDeInstruccion[pos] != diccionario.Create && partesDeInstruccion[pos].Length > 1
+                                                            && partesDeInstruccion[pos] != diccionario.Delete && partesDeInstruccion[pos] != diccionario.Drop
+                                                            && partesDeInstruccion[pos] != diccionario.From && partesDeInstruccion[pos] != diccionario.Insert
+                                                            && partesDeInstruccion[pos] != diccionario.Into && partesDeInstruccion[pos] != diccionario.Select
+                                                            && partesDeInstruccion[pos] != diccionario.Table && partesDeInstruccion[pos] != diccionario.Values
+                                                            && partesDeInstruccion[pos] != diccionario.Where && partesDeInstruccion[pos] != "INT"
+                                                            && partesDeInstruccion[pos] != "DATETIME"                                                           //varchar(100) no, porque se elimina con la condición de #
+                                                            && !partesDeInstruccion[pos].Contains(".") && !partesDeInstruccion[pos].Contains(";")
+                                                            && !partesDeInstruccion[pos].Contains("=") && !partesDeInstruccion[pos].Contains(":")
+                                                            && !partesDeInstruccion[pos].Contains("{") && !partesDeInstruccion[pos].Contains("}")
+                                                            && !partesDeInstruccion[pos].Contains("¿") && !partesDeInstruccion[pos].Contains("?")
+                                                            && !partesDeInstruccion[pos].Contains("¡") && !partesDeInstruccion[pos].Contains("!")
+                                                            && !partesDeInstruccion[pos].Contains("\\") && !partesDeInstruccion[pos].Contains("/")
+                                                            && !partesDeInstruccion[pos].Contains("&") && !partesDeInstruccion[pos].Contains("$")
+                                                            && !partesDeInstruccion[pos].Contains("\"") && !partesDeInstruccion[pos].Contains("#")
+                                                            && !partesDeInstruccion[pos].Contains("[") && !partesDeInstruccion[pos].Contains("]")
+                                                            && !partesDeInstruccion[pos].Contains("+") && !partesDeInstruccion[pos].Contains("*")
+                                                            )
+                                                        {
+                                                            if (partesDeInstruccion[pos + 1] == "INT")
+                                                            {
+                                                                columnas.Add(partesDeInstruccion[pos], "INT");
+                                                                contadorINT++;
+                                                            }
+                                                            else if (partesDeInstruccion[pos + 1] == "VARCHAR#")
+                                                            {
+                                                                columnas.Add(partesDeInstruccion[pos], "VARCHAR(100)");
+                                                                contadorVARCHAR++;
+                                                            }
+                                                            else if (partesDeInstruccion[pos + 1] == "DATETIME")
+                                                            {
+                                                                columnas.Add(partesDeInstruccion[pos], "DATETIME");
+                                                                contadorDATETIME++;
+                                                            }
+                                                            else { listaErrores.Add("CREATE ERROR: tipo de dato para columna no válido"); Correcto = false; }
+                                                        }
+                                                        else { listaErrores.Add("CREATE ERROR: las columnas no pueden llamarse como palabras reservadas o contener ciertos caracteres"); Correcto = false; }
+                                                    }
+                                                    else { listaErrores.Add("CREATE ERROR: falta <,> o se definió mal una columna"); Correcto = false; }
+                                                }
+                                                while (partesDeInstruccion[pos + 2] != ")");
+
+                                                //se debe comprobar si pasó todas las validaciones dentro del while
+                                                if (Correcto)
+                                                {
+                                                    if (contadorDATETIME <= 3 && contadorINT <= 3 && contadorVARCHAR <= 3)
+                                                    {
+                                                        //crear archivo .tabla a partir del diccionario
+                                                        string path = "C://microSQL//tablas//" + partesDeInstruccion[2] + ".tabla";
+                                                        FileStream fs = File.Create(path);
+                                                        StreamWriter sw = new StreamWriter(fs);
+                                                        sw.WriteLine("ID,INT PRIMARY KEY");
+                                                        foreach (var columna in columnas)
+                                                        {
+                                                            sw.WriteLine(columna.Key + "," + columna.Value);
+                                                        }
+                                                        sw.Flush();
+                                                        sw.Close();
+
+                                                        //crear archivo .arbolb
+                                                    }
+                                                    else { listaErrores.Add("CREATE ERROR: no se pueden crear más de 3 columnas con el mismo tipo de dato"); }
+                                                }
+                                            }
+                                            else { listaErrores.Add("CREATE ERROR: nunca se cerró la instrucción <)> o se empezó otra sin separarla con <" + diccionario.Go + ">"); }
+                                        }
+                                        else { listaErrores.Add("CREATE ERROR: falta <;> o no se definió otra columna diferente a ID"); }
+                                    }
+                                    else { listaErrores.Add("CREATE ERROR: es obligatorio inculir la columna ID del tipo INT PRIMARY KEY"); }
+                                }
+                                catch (Exception) { listaErrores.Add("CREATE ERROR: instrucción incompleta"); throw; }
+                            }
+                            else { listaErrores.Add("CREATE ERROR: Nombre de tabla no válido"); }
+                        }
+                        else{ listaErrores.Add("CREATE ERROR: ya existe una tabla con ese nombre"); }
+                    }
+                    else{ listaErrores.Add("CREATE ERROR: falta <" +diccionario.Table+ ">"); }
+                }
+                #endregion
+
+                #region INSERT
+                //INSERT INTO
+                else if (partesDeInstruccion[0] == diccionario.Insert)
+                {
+                    try
+                    {
+                        if (partesDeInstruccion[1] == diccionario.Into)
+                        {
+                            if (File.Exists("C://microSQL//tablas//"+partesDeInstruccion[2]+".tabla"))
+                            {
+                                if (partesDeInstruccion[3] == "(")
+                                {
+                                    Dictionary<string, string> columnas = new Dictionary<string, string>();
+                                    StreamReader sr = new StreamReader("C://microSQL//tablas//" + partesDeInstruccion[2] + ".tabla");
+                                    string line;
+                                    while ((line = sr.ReadLine()) != null) { columnas.Add(line.Split(',')[0], line.Split(',')[1]); }
+                                    sr.Close();
+                                    int pos = 4;
+                                    string nombresCol = "";
+                                    bool correcto = true;
+                                    for (int i = 0; i < columnas.Count; i++) {nombresCol += partesDeInstruccion[pos] + partesDeInstruccion[pos + 1]; pos = pos + 2; }
+                                    string[] nombres = nombresCol.Split(',');
+                                    int j = 0;
+                                    foreach (var col in columnas)
+                                    {
+                                        if (j == nombres.Length - 1)
+                                        {
+                                            if (col.Key + ")" != nombres[j]){ correcto = false; }
+                                        }
+                                        else { if (col.Key != nombres[j]){ correcto = false; } }
+                                        j++;
+                                    }
+                                    if (correcto)
+                                    {
+                                        if (partesDeInstruccion[pos] == diccionario.Values && partesDeInstruccion[pos + 1] == "(" && partesDeInstruccion[partesDeInstruccion.Length-1] == ")")
+                                        {
+                                            pos++;
+                                            string campos = "";
+                                            for (int i = pos; i < partesDeInstruccion.Length - 1; i++)
+                                            {
+                                                campos += partesDeInstruccion[i] + " ";
+                                            }
+                                            string[] camposSeparados = campos.Split(',');
+                                            int k = 0;
+                                            foreach (var column in columnas)
+                                            {
+                                                string valor = camposSeparados[k].Trim();
+                                                switch (column.Value)
+                                                {
+                                                    case "INT":
+                                                        if (int.TryParse(valor, out int resultINT))
+                                                        {
+                                                            //insertar en el nuevo objeto 
+                                                        }
+                                                        else
+                                                        {
+                                                            correcto = false;
+                                                            listaErrores.Add("INSERT ERROR: valor no especificado correctamente para" + column.Key + " de tipo INT");
+                                                        }
+                                                        break;
+                                                    case "DATETIME":
+                                                        if (DateTime.TryParse(valor, out DateTime resultDATE))
+                                                        {
+                                                            //insertar en el nuevo objeto
+                                                        }
+                                                        else
+                                                        {
+                                                            correcto = false;
+                                                            listaErrores.Add("INSERT ERROR: valor no especificado correctamente para" + column.Key + " de tipo DATETIME");
+                                                        }
+                                                        break;
+                                                    case "VARCHAR(100)":
+                                                        if (valor[0] == '\'' && valor[valor.Length - 1] == '\'')
+                                                        {
+                                                            string aux = valor.TrimStart('\'');
+                                                            aux = aux.TrimEnd('\'');
+                                                            aux = aux.Trim();
+                                                            //insertar en el nuevo objeto
+                                                        }
+                                                        else
+                                                        {
+                                                            correcto = false;
+                                                            listaErrores.Add("INSERT ERROR: valor no especificado correctamente para" + column.Key + " de tipo DATETIME");
+                                                        }
+                                                        break;
+
+                                                    default:
+                                                        break;
+                                                }
+                                                k++;
+                                            }
+                                            if (correcto)
+                                            {
+                                                //INSERTAR NUEVO OBJETO EN EL ARBOL
+                                            }
+                                        }
+                                        else { listaErrores.Add("INSERT ERROR: nombres de columnas no definidos o ausencia de¨<)>"); }
+                                    }
+                                    else { listaErrores.Add("INSERT ERROR: nombres de columnas no definidos o ausencia de¨<)>"); }
+                                }
+                            }
+                            else { listaErrores.Add("INSERT ERROR: No existe la tabla"); }
+                        }
+                        else { listaErrores.Add("INSERT ERROR: falta <" + diccionario.Into + ">"); }
+                    }
+                    catch (Exception) { listaErrores.Add("INSERT ERROR: Instrucción incompleta"); throw; }                   
+                }
+                #endregion
+
+                #region DELETE
+                //DELETE
+                else if (partesDeInstruccion[0] == diccionario.Delete)
+                {
+                    //borrar todo los datos de la tabla
+                    if (partesDeInstruccion.Length == 3)
+                    {
+                        if (partesDeInstruccion[1] == diccionario.From)
+                        {
+                            if (File.Exists("C://microSQL//tablas//"+partesDeInstruccion[2]+".tabla"))
+                            {
+                                //borrar el archivo árbol y volverlo a crear
+                            }
+                            else { listaErrores.Add("DELETE ERROR: no existe esa tabla"); }
+                        }
+                        else { listaErrores.Add("DELETE ERROR: falta <" + diccionario.From + ">"); }
+                    }
+                    else if (partesDeInstruccion.Length == 7)
+                    {
+                        if (partesDeInstruccion[1] == diccionario.From)
+                        {
+                            if (File.Exists("C://microSQL//tablas//" + partesDeInstruccion[2] + ".tabla"))
+                            {
+                                //FILTRADO POR LLAVE
+                                if (partesDeInstruccion[3] == diccionario.Where && partesDeInstruccion[4] == "ID" 
+                                    &&partesDeInstruccion[5] == "=")
+                                {
+                                    if (int.TryParse(partesDeInstruccion[7], out int res))
+                                    {
+                                        //obtener todas las filas desde el árbol
+                                        //omitir la que tiene dicha llave
+                                        //insertar en un nuevo arbol fila por fila
+                                    }
+                                    else { listaErrores.Add("DELETE ERROR: ID no válido"); }
+                                }
+                                else { listaErrores.Add("DELETE ERROR: FILTRO DE LLAVE MAL APLICADO"); }
+                            }
+                            else { listaErrores.Add("DELETE ERROR: no existe esa tabla"); }
+                        }
+                        else { listaErrores.Add("DELETE ERROR: falta <" + diccionario.From + ">"); }
+                    }
+                    else { listaErrores.Add("DELETE ERROR: instrucción incompleta o incorrecta"); }
+                }
+                #endregion
+
+                #region DROP
+                //DROP TABLE
+                else if (partesDeInstruccion[0] == diccionario.Drop)
+                {
+                    if (partesDeInstruccion.Length > 3)
+                    {
+                        listaErrores.Add("ERROR: se deben separar la instrucciones");
+                    }
+                    else
+                    {
+                        if (partesDeInstruccion[1] == diccionario.Table)
+                        {
+                            //VERIFICAR SI EL ARCHIVO EXISTE, BORRAR AMBOS ARCHIVOS 
+                            if (File.Exists("C://microSQL//tablas//"+partesDeInstruccion[2]+".tabla"))
+                            {
+                                File.Delete("C://microSQL//tablas//"+partesDeInstruccion[2]+".tabla");
+                                File.Delete("C://microSQL//tablas//" + partesDeInstruccion[2] + ".arbolb");
+                            }
+                            else { listaErrores.Add("DROP ERROR: Exta tabla no existe"); }
+                        }
+                        else { listaErrores.Add("DROP ERROR: falta <" + diccionario.Table + ">"); }
+                    }                    
+                }
+                #endregion
+
+                #region SELECT
+                //SELECT
+                else if (partesDeInstruccion[0] == diccionario.Select)
+                {
+                    try
+                    {
+                        if (partesDeInstruccion[1] == "*")
+                        {
+                            if (partesDeInstruccion[2] == diccionario.From)
+                            {
+                                if (File.Exists("C://microSQL//tablas//" + partesDeInstruccion[3] + ".tabla"))
+                                {
+                                    if (partesDeInstruccion.Length > 4 && partesDeInstruccion.Length < 9)
+                                    {
+                                        //SE APLICA EL FILTRO DE LLAVE
+                                        if (partesDeInstruccion[4] == diccionario.Where && partesDeInstruccion[5] == "ID"
+                                            && partesDeInstruccion[6] == "=")
+                                        {
+                                            if (int.TryParse(partesDeInstruccion[7], out int res))
+                                            {
+                                                //OBTENER LA FILA DEL ARBOL (SI EXISTE)
+                                            }
+                                            else { listaErrores.Add("SELECT ERROR: ID no válido"); }
+                                        }
+                                        else { listaErrores.Add("SELECT ERROR: FILTRO DE LLAVE MAL APLICADO"); }
+                                    }
+                                    else
+                                    {
+                                        //OBTENER TODOS LOS DATOS DESDE EL ÁRBOL
+                                    }
+                                }
+                                else { listaErrores.Add("SELECT ERROR: No existe el nombre de esa tabla"); }
+                            }
+                            else { listaErrores.Add("SELECT ERROR: Debe colocar <" + diccionario.From + ">"); }
+                        }
+                        else
+                        {
+                            //VERIFICAR QUE SI EXISTAN LAS COLUMNAS
+                            Dictionary<string, string> columnas = new Dictionary<string, string>();                            
+                            int pos = 1;
+                            bool contieneFrom = false;
+                            bool todasExisten = true;
+                            string ColumnasDescritas = "";
+                            for (int i = 1; i < partesDeInstruccion.Length; i++) { if (partesDeInstruccion[i] == diccionario.From) { contieneFrom = true; }}
+                            if (contieneFrom)
+                            {
+                                while (partesDeInstruccion[pos] != diccionario.From) { ColumnasDescritas += partesDeInstruccion[pos]; pos++; }
+                                string[] nombres = ColumnasDescritas.Split(',');
+                                pos++; //después del FROM
+                                if (File.Exists("C://microSQL//tablas//" + partesDeInstruccion[pos] + ".tabla"))
+                                {
+                                    StreamReader sr = new StreamReader("C://microSQL//tablas//" + partesDeInstruccion[pos] + ".tabla");
+                                    string line;
+                                    while ((line = sr.ReadLine()) != null) { columnas.Add(line.Split(',')[0], line.Split(',')[1]); }
+                                    sr.Close();
+                                    foreach (var nombre in nombres) { if (columnas[nombre] == null) { todasExisten = false; } }
+                                    if (todasExisten)
+                                    {
+                                        if (partesDeInstruccion.Length == pos)
+                                        {
+                                            //obtener todas la filas del árbol
+                                        }
+                                        else
+                                        {
+                                            pos++;
+                                            //SE APLICA EL FILTRO DE LLAVE
+                                            if (partesDeInstruccion[pos] == diccionario.Where && partesDeInstruccion[pos+1] == "ID"
+                                                && partesDeInstruccion[pos+2] == "=")
+                                            {
+                                                if (int.TryParse(partesDeInstruccion[pos+3], out int res))
+                                                {
+                                                    pos = pos + 3;
+                                                    if (partesDeInstruccion.Length > pos)
+                                                    {
+                                                        //OBTENER LA FILA CON EL ID (SI EXISTE)
+                                                    }
+                                                }
+                                                else { listaErrores.Add("SELECT ERROR: ID no válido"); }
+                                            }
+                                            else { listaErrores.Add("SELECT ERROR: FILTRO DE LLAVE MAL APLICADO"); }
+                                        }
+                                    }
+                                    else { listaErrores.Add("SELECT ERROR: algunos nombres de columnas no existen"); }
+                                }
+                                else { listaErrores.Add("SELECT ERROR: la tabla no existe"); }    
+                            }
+                            else{ listaErrores.Add("SELECT ERROR: instrucción no contiene <" + diccionario.From+ ">");}
+                        }
+                    }
+                    catch (Exception){ listaErrores.Add("SELECT ERROR: instrucción incompleta"); throw; }
+                }
+                #endregion
+
+                #region DEFAULT
+                //si no cae en la categoría de instrucción realiza la siguiente acción.
+                else
+                { listaErrores.Add("ERROR: instrucción no reconocida"); }
+                #endregion
+
+                #endregion
+
+            }
+
+            return listaErrores;
+        }
+
+        
+    }
+}

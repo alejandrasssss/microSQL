@@ -1,0 +1,32 @@
+﻿@model List<Proyecto_microSQL.Models.EstructuraTabla>
+
+<h6>
+    <ul id="myUL">
+        <li>
+            <span class="caret">Tablas</span>
+            <br />
+            <br />
+            <ul class="nested">
+                @{
+                    foreach (var item in Model)
+                    {
+                        <li>
+                            <span class="caret">@item.Nombre</span>
+                            <br />
+                            <br />
+                            <ul class="nested">
+                                @{
+                                    foreach (var columna in item.Columnas)
+                                    {
+                                        string col = columna.Key + " " + columna.Value;
+                                        <li>@col</li>
+                                    }
+                                }
+                            </ul>
+                        </li>
+                    }
+                }
+            </ul>
+        </li>
+    </ul>
+</h6>
