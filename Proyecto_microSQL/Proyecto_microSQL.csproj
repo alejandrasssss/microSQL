@@ -133,6 +133,7 @@
     </Compile>
     <Compile Include="Models\EstructuraTabla.cs" />
     <Compile Include="Models\FabricaFila.cs" />
+    <Compile Include="Models\Fila.cs" />
     <Compile Include="Models\InstrucciónSQL.cs" />
     <Compile Include="Models\PalabraReservada.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -194,6 +195,12 @@
     <None Include="packages.config" />
     <Content Include="Scripts\jquery-3.3.1.slim.min.map" />
     <Content Include="Scripts\jquery-3.3.1.min.map" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ClassLibraryBTree\ClassLibraryBTree.csproj">
+      <Project>{4b774a91-8a82-4567-b91b-39e8ba59d8c8}</Project>
+      <Name>ClassLibraryBTree</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
