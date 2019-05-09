@@ -15,8 +15,9 @@ namespace Proyecto_microSQL.Controllers
         //instancia que nos permite utilizar las palabras resevadas dentro del código
         static PalabraReservada diccionario = new PalabraReservada();
 
-        //Lista de apoyo, únicamente para las vistas parciales
+        //Listas de apoyo, únicamente para las vistas parciales
         List<EstructuraTabla> ListatreeView = new List<EstructuraTabla>();
+        static List<selection> selecciones = new List<selection>();
 
         //Lista de errores devueltos por el analizador de instrucciones
         //únicamente de apoyo para las vistas
@@ -27,8 +28,6 @@ namespace Proyecto_microSQL.Controllers
 
         static string textoPlano;
         #endregion
-
-
 
         // GET: SQL
         //Acción que maneja la carga de las palabras reservadas desde el archivo C://microSQL//microSQL.ini
@@ -55,6 +54,7 @@ namespace Proyecto_microSQL.Controllers
             ViewBag.tablas = ListatreeView;
             ViewBag.texto = textoPlano;
             ViewBag.error = errores;
+            ViewBag.grids = selecciones;
             return View();
         }
 
@@ -64,7 +64,8 @@ namespace Proyecto_microSQL.Controllers
             textoPlano = collection["textArea1"];
             if (textoPlano != "")
             {
-                errores = Analizador.LeerInstrucciones(textoPlano, diccionario);                
+                selecciones.Clear();
+                errores = Analizador.LeerInstrucciones(textoPlano, diccionario, ref selecciones);                
             }
             return RedirectToAction("EditorTexto");
         }

@@ -136,6 +136,7 @@
     <Compile Include="Models\Fila.cs" />
     <Compile Include="Models\InstrucciónSQL.cs" />
     <Compile Include="Models\PalabraReservada.cs" />
+    <Compile Include="Models\selection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

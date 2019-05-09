@@ -1,6 +1,7 @@
 ﻿@{
     ViewBag.Title = "Editor Texto";    
 }
+@using Proyecto_microSQL.Models;
 
 <div style="width:1200px; height:470px; padding:3px; float:left" ;>
 
@@ -38,8 +39,169 @@
                 <h6 style="color:darkgreen">@item</h6>
             }
         }
+
         //agregar las tablas de select
-    }
+        List<selection> selects = ViewBag.grids;
+        foreach (var select in selects)
+        {
+            EstructuraTabla nueva = new EstructuraTabla();
+            nueva.Nombre = select.NombreTabla;
+            StreamReader sr = new StreamReader("C://microSQL//tablas//" + select.NombreTabla + ".tabla");
+            string line;
+            while ((line = sr.ReadLine()) != null)
+            {
+                nueva.Columnas.Add(line.Split(',')[0], line.Split(',')[1]);
+            }
+            sr.Close();
+            <table class="table table-hover" style="background:#ffffff">
+                <thead>
+                    <tr>
+                        @{
+                            if (select.Columnas.Count > 0)
+                            {
+                                if (select.Columnas[0] == "*")
+                                {
+                                    foreach (var item in nueva.Columnas)
+                                    {
+                                        <th scope="col">@item.Key</th>
+                                    }
+                                }
+                                else
+                                {
+                                    foreach (var columna in select.Columnas)
+                                    {
+                                        <th scope="col">@columna</th>
+                                    }
+                                }
+                            }
+
+                        }
+                        
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="table-light" style="background-color:floralwhite">
+                        @{
+                            foreach (var fila in select.Filas)
+                            {
+                                if (select.Columnas.Count > 0)
+                                {
+                                    if (select.Columnas[0] == "*")
+                                    {
+                                        foreach (var item in nueva.Columnas)
+                                        {
+                                            <td> @fila.ID </td>
+                                            if (fila.INT1 != 0)
+                                            {
+                                                <td> @fila.INT1 </td>
+                                                if (fila.INT2 != 0)
+                                                {
+                                                    <td> @fila.INT2 </td>
+                                                    if (fila.INT3 != 0)
+                                                    {
+                                                        <td> @fila.INT3 </td>
+                                                    }
+                                                }
+                                            }
+                                            if (fila.DT1 != "")
+                                            {
+                                                <td> @fila.DT1 </td>
+                                                if (fila.DT2 != "")
+                                                {
+                                                    <td> @fila.DT2 </td>
+                                                    if (fila.DT3 != "")
+                                                    {
+                                                        <td> @fila.DT3 </td>
+                                                    }
+                                                }
+                                            }
+                                            if (fila.VAR1 != "")
+                                            {
+                                                <td> @fila.VAR1 </td>
+                                                if (fila.DT2 != "")
+                                                {
+                                                    <td> @fila.VAR2 </td>
+                                                    if (fila.VAR3 != "")
+                                                    {
+                                                        <td> @fila.VAR3 </td>
+                                                    }
+                                                }
+                                            }
+
+                                        }
+                                    }
+                                    else
+                                    {
+                                        int Intcont = 0;
+                                        int Varcont = 0;
+                                        int DTcont = 0;
+
+                                        foreach (var columna in select.Columnas)
+                                        {
+                                            if (nueva.Columnas[columna] == "INT PRIMARY KEY")
+                                            {
+                                                <td> @fila.ID </td>
+                                            }
+                                            else if (nueva.Columnas[columna] == "INT")
+                                            {
+                                                if (Intcont == 0)
+                                                {
+                                                    <td> @fila.INT1 </td>
+                                                }
+                                                else if (Intcont == 1)
+                                                {
+                                                    <td> @fila.INT2 </td>
+                                                }
+                                                else if (Intcont == 2)
+                                                {
+                                                    <td> @fila.INT3 </td>
+                                                }
+                                                Intcont++;
+                                            }
+                                            else if (nueva.Columnas[columna] == "VARCHAR(100)")
+                                            {
+                                                if (Varcont == 0)
+                                                {
+                                                    <td> @fila.VAR1 </td>
+                                                }
+                                                else if (Varcont == 1)
+                                                {
+                                                    <td> @fila.VAR2 </td>
+                                                }
+                                                else if (Varcont == 2)
+                                                {
+                                                    <td> @fila.VAR3 </td>
+                                                }
+                                                Varcont++;
+                                            }
+                                            else if (nueva.Columnas[columna] == "DATETIME")
+                                            {
+                                                if (DTcont == 0)
+                                                {
+                                                    <td> @fila.DT1 </td>
+                                                }
+                                                else if (DTcont == 1)
+                                                {
+                                                    <td> @fila.DT2 </td>
+                                                }
+                                                else if (DTcont == 2)
+                                                {
+                                                    <td> @fila.DT3 </td>
+                                                }
+                                                DTcont++;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                    </tr>
+                </tbody>                                    
+            </table>
+        }
+
+}
 </div>
 
 
