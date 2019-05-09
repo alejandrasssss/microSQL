@@ -1,0 +1,6 @@
+C:\Users\danil\Desktop\microSQL\ClassLibraryBTree\bin\Debug\ClassLibraryBTree.dll
+C:\Users\danil\Desktop\microSQL\ClassLibraryBTree\bin\Debug\ClassLibraryBTree.pdb
+C:\Users\danil\Desktop\microSQL\ClassLibraryBTree\obj\Debug\ClassLibraryBTree.csprojAssemblyReference.cache
+C:\Users\danil\Desktop\microSQL\ClassLibraryBTree\obj\Debug\ClassLibraryBTree.csproj.CoreCompileInputs.cache
+C:\Users\danil\Desktop\microSQL\ClassLibraryBTree\obj\Debug\ClassLibraryBTree.dll
+C:\Users\danil\Desktop\microSQL\ClassLibraryBTree\obj\Debug\ClassLibraryBTree.pdb

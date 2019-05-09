@@ -20,10 +20,12 @@ namespace Proyecto_microSQL.Controllers
 
         //Lista de errores devueltos por el analizador de instrucciones
         //únicamente de apoyo para las vistas
-        List<string> errores;
+        static List<string> errores = new List<string>();
 
         //objeto donde se realiza la lectura de las instrucciones agregadas por el usuario
         InstrucciónSQL Analizador = new InstrucciónSQL();
+
+        static string textoPlano;
         #endregion
 
 
@@ -51,13 +53,15 @@ namespace Proyecto_microSQL.Controllers
 
             CargarEstructurasDeTabla();
             ViewBag.tablas = ListatreeView;
+            ViewBag.texto = textoPlano;
+            ViewBag.error = errores;
             return View();
         }
 
         [HttpPost]
         public ActionResult EditorTexto(FormCollection collection)
         {
-            string textoPlano = collection["textArea1"];
+            textoPlano = collection["textArea1"];
             if (textoPlano != "")
             {
                 errores = Analizador.LeerInstrucciones(textoPlano, diccionario);                

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using ClassLibraryBTree;
 
 namespace Proyecto_microSQL.Models
 {
@@ -12,10 +13,11 @@ namespace Proyecto_microSQL.Models
 
             TextoPlano = TextoPlano.Replace("\r","");
             TextoPlano = TextoPlano.Replace("\n"," ");
+            TextoPlano = TextoPlano.Replace(diccionario.Go, " " + diccionario.Go + " ");
 
             //Pueden venir en el texto escrito, varias instrucciones las cuales son separadas por GO
             //GO no se debe colocar en la última instrucción o si viene sólo una
-            string[] instrucciones = TextoPlano.Split(new string[] { " " + diccionario.Go + " " }, StringSplitOptions.None);
+            string[] instrucciones = TextoPlano.Split(new string[] { " " + diccionario.Go + " " }, StringSplitOptions.RemoveEmptyEntries);
 
             //recorremos cada una de las instrucciones que separamos previamente.
             foreach (var item in instrucciones)
@@ -156,6 +158,9 @@ namespace Proyecto_microSQL.Models
                                                         sw.Close();
 
                                                         //crear archivo .arbolb
+                                                       ArbolB<Fila> arbol = new ArbolB<Fila>(5, "C://microSQL//arbolesb//"+NombreTabla+".arbolb", new FabricaFila());
+                                                       arbol.Cerrar();
+                                                       listaErrores.Add("CREATE SUCCESSFUL");
                                                     }
                                                     else { listaErrores.Add("CREATE ERROR: no se pueden crear más de 3 columnas con el mismo tipo de dato"); }
                                                 }
@@ -166,7 +171,7 @@ namespace Proyecto_microSQL.Models
                                     }
                                     else { listaErrores.Add("CREATE ERROR: es obligatorio inculir la columna ID del tipo INT PRIMARY KEY"); }
                                 }
-                                catch (Exception) { listaErrores.Add("CREATE ERROR: instrucción incompleta"); throw; }
+                                catch (Exception) { listaErrores.Add("CREATE ERROR: instrucción incompleta"); }
                             }
                             else { listaErrores.Add("CREATE ERROR: Nombre de tabla no válido"); }
                         }
@@ -184,13 +189,21 @@ namespace Proyecto_microSQL.Models
                     {
                         if (partesDeInstruccion[1] == diccionario.Into)
                         {
-                            if (File.Exists("C://microSQL//tablas//"+partesDeInstruccion[2]+".tabla"))
+                            string nombreTabla = partesDeInstruccion[2];
+                            if (File.Exists("C://microSQL//tablas//"+nombreTabla+".tabla"))
                             {
                                 if (partesDeInstruccion[3] == "(")
                                 {
                                     Dictionary<string, string> columnas = new Dictionary<string, string>();
-                                    StreamReader sr = new StreamReader("C://microSQL//tablas//" + partesDeInstruccion[2] + ".tabla");
+                                    StreamReader sr = new StreamReader("C://microSQL//tablas//" +nombreTabla+ ".tabla");
                                     string line;
+                                    //para saber en que propiedad de Fila guardar
+                                    int contadorINT = 0;
+                                    int contadorDT = 0;
+                                    int contadorVAR = 0;
+                                    //nuevo objeto
+                                    Fila nuevaFila = new Fila();
+
                                     while ((line = sr.ReadLine()) != null) { columnas.Add(line.Split(',')[0], line.Split(',')[1]); }
                                     sr.Close();
                                     int pos = 4;
@@ -212,7 +225,7 @@ namespace Proyecto_microSQL.Models
                                     {
                                         if (partesDeInstruccion[pos] == diccionario.Values && partesDeInstruccion[pos + 1] == "(" && partesDeInstruccion[partesDeInstruccion.Length-1] == ")")
                                         {
-                                            pos++;
+                                            pos = pos+2;
                                             string campos = "";
                                             for (int i = pos; i < partesDeInstruccion.Length - 1; i++)
                                             {
@@ -228,7 +241,23 @@ namespace Proyecto_microSQL.Models
                                                     case "INT":
                                                         if (int.TryParse(valor, out int resultINT))
                                                         {
-                                                            //insertar en el nuevo objeto 
+                                                            //insertar en el nuevo objeto
+                                                            switch (contadorINT)
+                                                            {
+                                                                case 0:
+                                                                    nuevaFila.INT1 = resultINT;
+                                                                    break;
+                                                                case 1:
+                                                                    nuevaFila.INT2 = resultINT;
+                                                                    break;
+                                                                case 2:
+                                                                    nuevaFila.INT3 = resultINT;
+                                                                    break;
+
+                                                                default:
+                                                                    break;
+                                                            }
+                                                            contadorINT++;
                                                         }
                                                         else
                                                         {
@@ -240,6 +269,21 @@ namespace Proyecto_microSQL.Models
                                                         if (DateTime.TryParse(valor, out DateTime resultDATE))
                                                         {
                                                             //insertar en el nuevo objeto
+                                                            switch (contadorINT)
+                                                            {
+                                                                case 0:
+                                                                    nuevaFila.DT1 = valor;
+                                                                    break;
+                                                                case 1:
+                                                                    nuevaFila.DT2 = valor;
+                                                                    break;
+                                                                case 2:
+                                                                    nuevaFila.DT3 = valor;
+                                                                    break;
+                                                                default:
+                                                                    break;
+                                                            }
+                                                            contadorDT++;
                                                         }
                                                         else
                                                         {
@@ -254,6 +298,21 @@ namespace Proyecto_microSQL.Models
                                                             aux = aux.TrimEnd('\'');
                                                             aux = aux.Trim();
                                                             //insertar en el nuevo objeto
+                                                            switch (contadorVAR)
+                                                            {
+                                                                case 0:
+                                                                    nuevaFila.VAR1 = aux;
+                                                                    break;
+                                                                case 1:
+                                                                    nuevaFila.VAR2 = aux;
+                                                                    break;
+                                                                case 2:
+                                                                    nuevaFila.VAR3 = aux;
+                                                                    break;
+                                                                default:
+                                                                    break;
+                                                            }
+                                                            contadorVAR++;
                                                         }
                                                         else
                                                         {
@@ -262,6 +321,18 @@ namespace Proyecto_microSQL.Models
                                                         }
                                                         break;
 
+                                                    case "INT PRIMARY KEY":
+                                                        if (Int32.TryParse(valor, out int RES))
+                                                        {
+                                                            nuevaFila.ID = RES;
+                                                        }
+                                                        else
+                                                        {
+                                                            correcto = false;
+                                                            listaErrores.Add("INSERT ERROR: valor no especificado correctamente para" + column.Key + " de tipo INT PRIMARY KEY");
+                                                        }
+                                                         
+                                                        break;
                                                     default:
                                                         break;
                                                 }
@@ -270,6 +341,10 @@ namespace Proyecto_microSQL.Models
                                             if (correcto)
                                             {
                                                 //INSERTAR NUEVO OBJETO EN EL ARBOL
+                                                ArbolB<Fila> arbol = new ArbolB<Fila>(5, "C://microSQL//arbolesb//" + nombreTabla + ".arbolb", new FabricaFila());
+                                                arbol.Agregar(nuevaFila.ID.ToString().Trim('x'), nuevaFila, "");
+                                                arbol.Cerrar();
+                                                listaErrores.Add("INSERT SUCCESSFUL");
                                             }
                                         }
                                         else { listaErrores.Add("INSERT ERROR: nombres de columnas no definidos o ausencia de¨<)>"); }
@@ -281,7 +356,7 @@ namespace Proyecto_microSQL.Models
                         }
                         else { listaErrores.Add("INSERT ERROR: falta <" + diccionario.Into + ">"); }
                     }
-                    catch (Exception) { listaErrores.Add("INSERT ERROR: Instrucción incompleta"); throw; }                   
+                    catch (Exception) { listaErrores.Add("INSERT ERROR: Instrucción incompleta"); }                   
                 }
                 #endregion
 
@@ -294,9 +369,13 @@ namespace Proyecto_microSQL.Models
                     {
                         if (partesDeInstruccion[1] == diccionario.From)
                         {
-                            if (File.Exists("C://microSQL//tablas//"+partesDeInstruccion[2]+".tabla"))
+                            if (File.Exists("C://microSQL//arbolesb//"+partesDeInstruccion[2]+".arbolb"))
                             {
                                 //borrar el archivo árbol y volverlo a crear
+                                File.Delete("C://microSQL//arbolesb//" + partesDeInstruccion[2] + ".arbolb");
+                                ArbolB<Fila> arbol = new ArbolB<Fila>(5, "C://microSQL//arbolesb//" + partesDeInstruccion[2] + ".arbolb", new FabricaFila());
+                                arbol.Cerrar();
+                                listaErrores.Add("DELETE SUCCESSFUL");
                             }
                             else { listaErrores.Add("DELETE ERROR: no existe esa tabla"); }
                         }
@@ -334,24 +413,29 @@ namespace Proyecto_microSQL.Models
                 //DROP TABLE
                 else if (partesDeInstruccion[0] == diccionario.Drop)
                 {
-                    if (partesDeInstruccion.Length > 3)
+                    try
                     {
-                        listaErrores.Add("ERROR: se deben separar la instrucciones");
-                    }
-                    else
-                    {
-                        if (partesDeInstruccion[1] == diccionario.Table)
+                        if (partesDeInstruccion.Length > 3)
                         {
-                            //VERIFICAR SI EL ARCHIVO EXISTE, BORRAR AMBOS ARCHIVOS 
-                            if (File.Exists("C://microSQL//tablas//"+partesDeInstruccion[2]+".tabla"))
-                            {
-                                File.Delete("C://microSQL//tablas//"+partesDeInstruccion[2]+".tabla");
-                                File.Delete("C://microSQL//tablas//" + partesDeInstruccion[2] + ".arbolb");
-                            }
-                            else { listaErrores.Add("DROP ERROR: Exta tabla no existe"); }
+                            listaErrores.Add("ERROR: se deben separar las instrucciones");
                         }
-                        else { listaErrores.Add("DROP ERROR: falta <" + diccionario.Table + ">"); }
-                    }                    
+                        else
+                        {
+                            if (partesDeInstruccion[1] == diccionario.Table)
+                            {
+                                //VERIFICAR SI EL ARCHIVO EXISTE, BORRAR AMBOS ARCHIVOS 
+                                if (File.Exists("C://microSQL//tablas//" + partesDeInstruccion[2] + ".tabla"))
+                                {
+                                    File.Delete("C://microSQL//tablas//" + partesDeInstruccion[2] + ".tabla");
+                                    File.Delete("C://microSQL//tablas//" + partesDeInstruccion[2] + ".arbolb");
+                                    listaErrores.Add("DROP SUCCESSFUL");
+                                }
+                                else { listaErrores.Add("DROP ERROR: Esta tabla no existe"); }
+                            }
+                            else { listaErrores.Add("DROP ERROR: falta <" + diccionario.Table + ">"); }
+                        }
+                    }
+                    catch (Exception) { listaErrores.Add("DROP ERROR: Instrucción incompleta"); }                                        
                 }
                 #endregion
 
@@ -444,7 +528,7 @@ namespace Proyecto_microSQL.Models
                             else{ listaErrores.Add("SELECT ERROR: instrucción no contiene <" + diccionario.From+ ">");}
                         }
                     }
-                    catch (Exception){ listaErrores.Add("SELECT ERROR: instrucción incompleta"); throw; }
+                    catch (Exception){ listaErrores.Add("SELECT ERROR: instrucción incompleta");}
                 }
                 #endregion
 

@@ -23,7 +23,7 @@ namespace Proyecto_microSQL.Models
         public string VAR2 { get; set; }
         public string VAR3 { get; set; }
 
-        private const string FormatoConst = "xxxxxxxxxxxxxxxxxxxx-xxxxxxxxxxxxxxxxxxxx-00-xxxxxxxxxxxxxxx-xxxxxxxxxxxxxxxxxxxx";
+        private const string FormatoConst = "0000000000¡0000000000¡0000000000¡0000000000¡#########################¡#########################¡#########################¡####################################################################################################¡####################################################################################################¡####################################################################################################";
 
         public Fila()
         {
@@ -57,7 +57,7 @@ namespace Proyecto_microSQL.Models
         {
             get
             {
-                return 81;
+                return 424;
             }
         }
 
@@ -69,15 +69,25 @@ namespace Proyecto_microSQL.Models
         public string ToFixedSizeString()
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append(ID.ToString().PadLeft(20, '0'));
-            //sb.Append('-');
-            //sb.Append(Apellido.PadLeft(20, 'x'));
-            //sb.Append('-');
-            //sb.Append(Edad.ToString().PadLeft(2, '0'));
-            //sb.Append('-');
-            //sb.Append(Username.PadLeft(15, 'x'));
-            //sb.Append('-');
-            //sb.Append(Password.PadLeft(20, 'x'));
+            sb.Append(ID.ToString().PadLeft(10, '0'));
+            sb.Append('^');
+            sb.Append(INT1.ToString().PadLeft(10, '0'));
+            sb.Append('^');
+            sb.Append(INT2.ToString().PadLeft(10, '0'));
+            sb.Append('^');
+            sb.Append(INT3.ToString().PadLeft(10, '0'));
+            sb.Append('^');
+            sb.Append(DT1.PadLeft(25, '#'));
+            sb.Append('^');
+            sb.Append(DT2.PadLeft(25, '#'));
+            sb.Append('^');
+            sb.Append(DT3.PadLeft(25, '#'));
+            sb.Append('^');
+            sb.Append(VAR1.PadLeft(100, '#'));
+            sb.Append('^');
+            sb.Append(VAR2.PadLeft(100, '#'));
+            sb.Append('^');
+            sb.Append(VAR3.PadLeft(100, '#'));
 
             return sb.ToString();
         }

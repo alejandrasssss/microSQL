@@ -1,5 +1,5 @@
 ﻿@{
-    ViewBag.Title = "Editor Texto";
+    ViewBag.Title = "Editor Texto";    
 }
 
 <div style="width:1200px; height:470px; padding:3px; float:left" ;>
@@ -15,7 +15,7 @@
                 <textarea class="form-control" name="textArea1" id="textArea" rows="20" cols="70" onkeyup=" var start = this.selectionStart;
                                                                                                             var end = this.selectionEnd;
                                                                                                             this.value = this.value.toUpperCase();
-                                                                                                            this.setSelectionRange(start, end);"></textarea>
+                                                                                                            this.setSelectionRange(start, end);">@ViewBag.texto</textarea>
             </div>
             <div class="col-xs-10 col-md-2">
                 <button class="btn btn-success" type="submit">Ejecutar</button>
@@ -25,7 +25,20 @@
 </div>
 
 <div class="form-group" style="width:1026px; height:245px; overflow:scroll; background:#808080; float:left; padding:3px;">
-
+    @{
+        List<string> err = ViewBag.error;
+        foreach (var item in err)
+        {
+            if (item.Contains("ERROR"))
+            {
+                <h6 style="color:darkred">@item</h6>
+            }
+            else
+            {
+                <h6 style="color:darkgreen">@item</h6>
+            }
+        }
+    }
 </div>
 
 

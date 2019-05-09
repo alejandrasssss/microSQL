@@ -172,3 +172,5 @@ C:\Users\danil\Desktop\microSQL\Proyecto_microSQL\obj\Debug\Proyecto_microSQL.cs
 C:\Users\danil\Desktop\microSQL\Proyecto_microSQL\obj\Debug\Proyecto_microSQL.csproj.CopyComplete
 C:\Users\danil\Desktop\microSQL\Proyecto_microSQL\obj\Debug\Proyecto_microSQL.dll
 C:\Users\danil\Desktop\microSQL\Proyecto_microSQL\obj\Debug\Proyecto_microSQL.pdb
+C:\Users\danil\Desktop\microSQL\Proyecto_microSQL\bin\ClassLibraryBTree.dll
+C:\Users\danil\Desktop\microSQL\Proyecto_microSQL\bin\ClassLibraryBTree.pdb

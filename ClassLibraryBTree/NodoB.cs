@@ -306,7 +306,7 @@ namespace ClassLibraryBTree
             {
                 string temp = Llaves[i];
 
-                if (llave.Trim() == temp.Trim())
+                if (llave.Trim() == temp.Trim('x'))
                 {
                     posicion = i;
                     break;
