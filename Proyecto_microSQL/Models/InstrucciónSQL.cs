@@ -30,6 +30,7 @@ namespace Proyecto_microSQL.Models
                 instruccion = instruccion.Replace(","," , ");
                 instruccion = instruccion.Replace("\'"," \' ");
                 instruccion = instruccion.Replace("*", " * ");
+                instruccion = instruccion.Replace("=", " = ");
 
                 //para facilitar, separamos cada una de las instrucciones por cada una de sus expresiones
                 string[] partesDeInstruccion = instruccion.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries);
@@ -385,17 +386,39 @@ namespace Proyecto_microSQL.Models
                     {
                         if (partesDeInstruccion[1] == diccionario.From)
                         {
-                            if (File.Exists("C://microSQL//tablas//" + partesDeInstruccion[2] + ".tabla"))
+                            if (File.Exists("C://microSQL//arbolesb//" + partesDeInstruccion[2] + ".arbolb"))
                             {
                                 //FILTRADO POR LLAVE
                                 if (partesDeInstruccion[3] == diccionario.Where && partesDeInstruccion[4] == "ID" 
                                     &&partesDeInstruccion[5] == "=")
                                 {
-                                    if (int.TryParse(partesDeInstruccion[7], out int res))
+                                    if (Int32.TryParse(partesDeInstruccion[6], out int res))
                                     {
-                                        //obtener todas las filas desde el árbol
-                                        //omitir la que tiene dicha llave
-                                        //insertar en un nuevo arbol fila por fila
+                                        List<Fila> filas = new List<Fila>();
+                                        //OBTENER TODOS LOS DATOS DESDE EL ÁRBOL
+                                        ArbolB<Fila> arbol = new ArbolB<Fila>(5, "C://microSQL//arbolesb//" + partesDeInstruccion[2] + ".arbolb", new FabricaFila());
+                                        foreach (var itemfila in arbol.RecorrerPreOrden())
+                                        {
+                                            var fabricada = new FabricaFila();
+                                            var fila = fabricada.FabricarTrim(itemfila.ToString());
+                                            filas.Add(fila);
+                                        }
+                                        arbol.Cerrar();
+                                        bool Econtro = false;
+                                        //insertar dato por dato e ignorar el de la llave
+                                        ArbolB<Fila> arbol2 = new ArbolB<Fila>(5, "C://microSQL//arbolesb//" + partesDeInstruccion[2] + "AUX.arbolb", new FabricaFila());
+                                        foreach (var cadaFila in filas)
+                                        {
+                                            if (cadaFila.ID != res){ arbol2.Agregar(cadaFila.ID.ToString().Trim('x'), cadaFila, ""); }
+                                            else{Econtro = true;}
+                                        }
+                                        arbol2.Cerrar();
+                                        if (Econtro){ listaErrores.Add("DELETE SUCCESSFUL"); }
+                                        else{ listaErrores.Add("DELETE ERROR: no se encontró un registro con ese ID"); }
+
+                                        //Borrar original y Renombrar el archivo auxiliar al original
+                                        File.Delete("C://microSQL//arbolesb//" + partesDeInstruccion[2] + ".arbolb");
+                                        File.Move("C://microSQL//arbolesb//" + partesDeInstruccion[2] + "AUX.arbolb", "C://microSQL//arbolesb//" + partesDeInstruccion[2] + ".arbolb");
                                     }
                                     else { listaErrores.Add("DELETE ERROR: ID no válido"); }
                                 }
@@ -449,7 +472,7 @@ namespace Proyecto_microSQL.Models
                         {
                             if (partesDeInstruccion[2] == diccionario.From)
                             {
-                                if (File.Exists("C://microSQL//tablas//" + partesDeInstruccion[3] + ".tabla"))
+                                if (File.Exists("C://microSQL//arbolesb//" + partesDeInstruccion[3] + ".arbolb"))
                                 {
                                     if (partesDeInstruccion.Length > 4 && partesDeInstruccion.Length < 9)
                                     {
@@ -457,9 +480,16 @@ namespace Proyecto_microSQL.Models
                                         if (partesDeInstruccion[4] == diccionario.Where && partesDeInstruccion[5] == "ID"
                                             && partesDeInstruccion[6] == "=")
                                         {
-                                            if (int.TryParse(partesDeInstruccion[7], out int res))
+                                            if (Int32.TryParse(partesDeInstruccion[7], out int res))
                                             {
                                                 //OBTENER LA FILA DEL ARBOL (SI EXISTE)
+                                                ArbolB<Fila> arbol = new ArbolB<Fila>(5, "C://microSQL//arbolesb//" + partesDeInstruccion[3] + ".arbolb", new FabricaFila());
+                                                var filaobtenida = arbol.Obtener(res.ToString());
+                                                arbol.Cerrar();
+                                                var Fabricada = new FabricaFila();
+                                                var FilaFabricada = Fabricada.FabricarTrim(filaobtenida.ToString());
+                                                //devolverlo a lo que me va a servir para mostrarlo a la vista
+                                                listaErrores.Add("SELECT SUCCESSFUL");
                                             }
                                             else { listaErrores.Add("SELECT ERROR: ID no válido"); }
                                         }
@@ -467,7 +497,17 @@ namespace Proyecto_microSQL.Models
                                     }
                                     else
                                     {
+                                        List<Fila> filas = new List<Fila>();
                                         //OBTENER TODOS LOS DATOS DESDE EL ÁRBOL
+                                        ArbolB<Fila> arbol = new ArbolB<Fila>(5, "C://microSQL//arbolesb//" + partesDeInstruccion[3] + ".arbolb", new FabricaFila());
+                                        foreach (var itemfila in arbol.RecorrerPreOrden())
+                                        {
+                                            var fabricada = new FabricaFila();
+                                            var fila = fabricada.FabricarTrim(itemfila.ToString());
+                                            filas.Add(fila);
+                                        }
+                                        arbol.Cerrar();
+                                        //devolverlo a lo que me va a servir para mostrarlo a la vista
                                     }
                                 }
                                 else { listaErrores.Add("SELECT ERROR: No existe el nombre de esa tabla"); }
