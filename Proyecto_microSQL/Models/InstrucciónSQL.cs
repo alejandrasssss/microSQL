@@ -560,11 +560,11 @@ namespace Proyecto_microSQL.Models
                                     foreach (var nombre in nombres) { if (columnas[nombre] == null) { todasExisten = false; } }
                                     if (todasExisten)
                                     {
-                                        if (partesDeInstruccion.Length == pos)
+                                        if (partesDeInstruccion.Length-1 == pos)
                                         {
                                             List<Fila> filas = new List<Fila>();
                                             //OBTENER TODOS LOS DATOS DESDE EL ÁRBOL
-                                            ArbolB<Fila> arbol = new ArbolB<Fila>(5, "C://microSQL//arbolesb//" + partesDeInstruccion[3] + ".arbolb", new FabricaFila());
+                                            ArbolB<Fila> arbol = new ArbolB<Fila>(5, "C://microSQL//arbolesb//" + partesDeInstruccion[pos] + ".arbolb", new FabricaFila());
                                             foreach (var itemfila in arbol.RecorrerPreOrden())
                                             {
                                                 var fabricada = new FabricaFila();
@@ -579,11 +579,12 @@ namespace Proyecto_microSQL.Models
                                             {
                                                 col.Add(nombre);
                                             }
-                                            selecciones.Add(new selection(partesDeInstruccion[3], col, filas));
+                                            selecciones.Add(new selection(partesDeInstruccion[pos], col, filas));
                                             listaErrores.Add("SELECT SUCCESSFUL");
                                         }
                                         else
                                         {
+                                            string nombreTABLA = partesDeInstruccion[pos];
                                             pos++;
                                             //SE APLICA EL FILTRO DE LLAVE
                                             if (partesDeInstruccion[pos] == diccionario.Where && partesDeInstruccion[pos+1] == "ID"
@@ -595,7 +596,7 @@ namespace Proyecto_microSQL.Models
                                                     if (partesDeInstruccion.Length > pos)
                                                     {
                                                         //OBTENER LA FILA CON EL ID (SI EXISTE)
-                                                        ArbolB<Fila> arbol = new ArbolB<Fila>(5, "C://microSQL//arbolesb//" + partesDeInstruccion[3] + ".arbolb", new FabricaFila());
+                                                        ArbolB<Fila> arbol = new ArbolB<Fila>(5, "C://microSQL//arbolesb//" + nombreTABLA + ".arbolb", new FabricaFila());
                                                         var filaobtenida = arbol.Obtener(res.ToString());
                                                         arbol.Cerrar();
                                                         var Fabricada = new FabricaFila();
@@ -608,7 +609,7 @@ namespace Proyecto_microSQL.Models
                                                         {
                                                             col.Add(nombre);
                                                         }
-                                                        selecciones.Add(new selection(partesDeInstruccion[3], col, filas));
+                                                        selecciones.Add(new selection(nombreTABLA, col, filas));
                                                         //devolverlo a lo que me va a servir para mostrarlo a la vista
                                                         listaErrores.Add("SELECT SUCCESSFUL");
                                                     }
